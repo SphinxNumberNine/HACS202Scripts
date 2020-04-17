@@ -8,6 +8,7 @@ const containerIP = "172.20.0.123";
 const scrambleLevel = "all";
 
 const createContainer = () => {
+  console.log("CREATING CONTAINER");
   const createCommand =
     "pct create " +
     containerID +
@@ -16,6 +17,7 @@ const createContainer = () => {
   let creationResponse = child_process.spawnSync(createCommand);
 
   if (creationResponse.error) {
+    console.log(creationResponse.error);
     return false;
   }
 
@@ -23,11 +25,13 @@ const createContainer = () => {
 };
 
 const mountContainer = () => {
+  console.log("MOUNTING CONTAINER");
   const mountCommand = "pct mount " + containerID;
 
   let mountResponse = child_process.spawnSync(mountCommand);
 
-  if (mountCommand.error) {
+  if (mountResponse.error) {
+    console.log(mountResponse.error);
     return false;
   }
 
@@ -35,6 +39,7 @@ const mountContainer = () => {
 };
 
 const execMITM = () => {
+  console.log("EXECUTING MAN IN THE MIDDLE");
   let scrambleScript;
   if (scrambleLevel === "all") {
     scrambleScript = "scramble_all.js";
@@ -59,6 +64,7 @@ const execMITM = () => {
   let mitmResponse = child_process.spawnSync(mitmCommand);
 
   if (mitmResponse.error) {
+    console.log(mitmResponse.error);
     return false;
   }
 
@@ -66,6 +72,7 @@ const execMITM = () => {
 };
 
 const scanLoginsFile = async () => {
+  console.log("SCANNING LOGINS FILE");
   const loginsPath = "~/MITM_data/logins " + containerID + ".txt";
 
   let loginsFileBuffer = fs.readFileSync(loginsPath);
@@ -83,10 +90,12 @@ const scanLoginsFile = async () => {
 };
 
 const waitForAttacker = async () => {
+  console.log("WAITING FOR ATTACKER TO FINISH");
   await sleep(1000 * 60 * 30);
 };
 
 const destroyContainer = () => {
+  console.log("DESTROYING CONTAINER");
   const stopCommand = "pct stop " + containerID;
   const destroyCommand = "pct destroy " + containerID;
 
@@ -97,18 +106,21 @@ const destroyContainer = () => {
 
   const destroyResponse = child_process.spawnSync(destroyCommand);
   if (destroyResponse.error) {
+    console.log(destroyResponse.error);
     return false;
   }
 };
 
 const doLifecycle = () => {
-  while (1 == 1) {
-    createContainer();
-    mountContainer();
-    execMITM();
-    scanLoginsFile();
-    waitForAttacker();
-    destroyContainer();
+  console.log("STARTING LIFECYCLE");
+  let cont = true;
+  while (cont) {
+    cont = createContainer();
+    cont = mountContainer();
+    cont = execMITM();
+    cont = scanLoginsFile();
+    cont = waitForAttacker();
+    cont = destroyContainer();
   }
 };
 
